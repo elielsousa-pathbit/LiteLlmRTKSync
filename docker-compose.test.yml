@@ -65,7 +65,10 @@ services:
       start_period: 90s
 
   litellmrtk-sync:
-    build: .
+    build:
+      context: .
+      args:
+        ENABLE_SAML: ${ENABLE_SAML:-0}
     image: ghcr.io/pathbit/litellmrtksync:local
     container_name: litellmrtk-test-sync
     hostname: litellmrtk-sync

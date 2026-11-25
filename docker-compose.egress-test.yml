@@ -30,7 +30,7 @@ services:
       - "127.0.0.1:18101:3128"
     networks:
       egress:
-        ipv4_address: 172.33.0.11
+        ipv4_address: 10.77.33.11
     healthcheck:
       # O que importa e a porta aceitar conexao: squidclient nao existe nesta
       # imagem, e um healthcheck que depende de binario ausente fica eternamente
@@ -48,7 +48,7 @@ services:
       - "127.0.0.1:18102:3128"
     networks:
       egress:
-        ipv4_address: 172.33.0.12
+        ipv4_address: 10.77.33.12
     healthcheck:
       # O que importa e a porta aceitar conexao: squidclient nao existe nesta
       # imagem, e um healthcheck que depende de binario ausente fica eternamente
@@ -69,7 +69,7 @@ services:
       - "127.0.0.1:18100:8080"
     networks:
       egress:
-        ipv4_address: 172.33.0.20
+        ipv4_address: 10.77.33.20
     command:
       - python3
       - -c
@@ -109,4 +109,5 @@ networks:
     name: litellmrtksync-egress-net
     ipam:
       config:
-        - subnet: 172.33.0.0/24
+        # O Squid aceita clientes locais em sub-redes privadas RFC 1918.
+        - subnet: 10.77.33.0/24

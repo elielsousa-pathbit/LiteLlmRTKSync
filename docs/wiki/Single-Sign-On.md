@@ -91,36 +91,17 @@ already behaves.
 
 ## SAML 2.0
 
-The SAML tab exists and is **disabled in the published image**, with a message saying so.
+The panel uses the Python `saml` extra. Build the container with the extra from the repository root.
 
-The honest reason: SAML signature validation cannot be done safely with the standard library.
-`xml.etree` canonicalizes to C14N 2.0 while SAML signs over exclusive canonicalization 1.0, so
-correct signatures would look invalid; there is no RSA verification in the standard library; and
-defending against XML Signature Wrapping requires tying the signature reference to the element
-that was actually read, which is library work, not pattern matching.
-
-So SAML depends on `python3-saml`, declared as an optional extra in `pyproject.toml`. With the
-library installed, the panel serves its service description at `/sso/saml/metadata` — behind
-login, on purpose — for you to hand to the identity provider. Configure the provider to **sign
-the assertion and not encrypt it**: encrypted assertions are out of scope, because they would
-require a private key for the panel, which is one more secret to hold.
-
-### Building an image that has it
-
-The published image does not ship the library, and the project `Dockerfile` is unchanged. To build
-your own, add this to it:
-
-```dockerfile
-RUN apk add --no-cache libxml2 libxslt xmlsec && \
-    apk add --no-cache --virtual .build gcc musl-dev libxml2-dev libxslt-dev xmlsec-dev pkgconfig && \
-    pip install --no-cache-dir --no-binary lxml,xmlsec python3-saml && \
-    apk del .build
+```bash
+docker build --build-arg ENABLE_SAML=1 -t litellmrtksync:saml .
 ```
 
-Compiling from source is not optional. The published wheels of `lxml` and `xmlsec` each bundle
-their own copy of `libxml2`, at different versions, and the result is a version mismatch error at
-import time. Building both against the system library is what resolves it; the build tools can be
-dropped afterwards, and the runtime keeps working with the three shared libraries alone.
+Set `image: litellmrtksync:saml` for the sync service in Compose. The standard image offers OIDC.
+
+The [Docker Keycloak example](https://github.com/pathbit/9RTKSync/tree/master/examples/saml-keycloak) registers all three test panels. In that example, the realm descriptor is at `http://localhost:19557/realms/rtksync-lab/protocol/saml/descriptor`.
+
+In Keycloak, create a SAML client with the panel entity ID at `/sso/saml/metadata` and the POST endpoint at `/sso/saml/acs`. Enable signatures for both the response and assertion, use an email-format NameID and leave the assertion unencrypted. The panel sends an HTTP-Redirect request. Copy the IdP entity ID, HTTP-Redirect SSO URL and signing certificate from the realm descriptor. Enter them in the panel along with its base URL and the email or domain allowlist. Authenticated operators can download the SP metadata.
 
 ---
 
@@ -277,37 +258,17 @@ ele quem manda a tela mostra o campo travado, como `DASHBOARD_PASSWORD` já se c
 
 ## SAML 2.0
 
-A aba de SAML existe e aparece **desabilitada na imagem publicada**, com uma mensagem dizendo isso.
+O painel usa o extra `saml` do Python. Para ativá-lo no contêiner, execute na raiz:
 
-O motivo honesto: a validação da assinatura SAML não sai com segurança usando só a biblioteca
-padrão. O `xml.etree` canonicaliza em C14N 2.0 e o SAML assina sobre canonicalização exclusiva 1.0,
-então assinaturas corretas pareceriam inválidas; não há verificação RSA na biblioteca padrão; e
-defender-se de XML Signature Wrapping exige amarrar a referência da assinatura ao elemento que foi
-efetivamente lido, o que é trabalho de biblioteca, não de expressão regular.
-
-Por isso o SAML depende da `python3-saml`, declarada como extra opcional no `pyproject.toml`. Com a
-biblioteca instalada, o painel serve a descrição do serviço em `/sso/saml/metadata` — atrás de
-login, de propósito — para você entregar ao provedor de identidade. Configure o provedor para
-**assinar a asserção e não criptografá-la**: asserção criptografada está fora de escopo, porque
-exigiria uma chave privada do painel, ou seja, mais um segredo para guardar.
-
-### Construindo uma imagem que tenha a biblioteca
-
-A imagem publicada não traz a biblioteca, e o `Dockerfile` do projeto está inalterado. Para
-construir a sua, acrescente a ele:
-
-```dockerfile
-RUN apk add --no-cache libxml2 libxslt xmlsec && \
-    apk add --no-cache --virtual .build gcc musl-dev libxml2-dev libxslt-dev xmlsec-dev pkgconfig && \
-    pip install --no-cache-dir --no-binary lxml,xmlsec python3-saml && \
-    apk del .build
+```bash
+docker build --build-arg ENABLE_SAML=1 -t litellmrtksync:saml .
 ```
 
-Compilar a partir do fonte não é opcional. Os pacotes prontos de `lxml` e de `xmlsec` embutem cada
-um a sua cópia da `libxml2`, em versões diferentes, e o resultado é um erro de incompatibilidade de
-versão na hora do import. Compilar os dois contra a biblioteca do sistema é o que resolve; as
-ferramentas de compilação podem sair depois, e o tempo de execução continua funcionando só com as
-três bibliotecas compartilhadas.
+No serviço do sincronizador do Compose, use `image: litellmrtksync:saml`. A imagem padrão mantém apenas a opção OIDC.
+
+O [exemplo Keycloak em Docker](https://github.com/pathbit/9RTKSync/tree/master/examples/saml-keycloak) registra os três painéis de teste. Nesse exemplo, o descritor do realm está em `http://localhost:19557/realms/rtksync-lab/protocol/saml/descriptor`.
+
+No Keycloak, crie um cliente SAML com o Entity ID do painel em `/sso/saml/metadata` e a URL de POST em `/sso/saml/acs`. Habilite a assinatura da resposta e da asserção, selecione NameID no formato e-mail e deixe a asserção sem criptografia. O painel envia a solicitação por HTTP-Redirect. Copie do descritor público do realm o Entity ID, a URL de SSO HTTP-Redirect e o certificado de assinatura. No painel, preencha esses campos, a URL base e a lista de e-mails ou domínios permitidos. O painel disponibiliza os metadados do SP a operadores autenticados.
 
 ---
 
