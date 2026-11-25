@@ -46,7 +46,7 @@ DO_GATEWAY = {
 # INITIAL_PASSWORD e JWT_SECRET são obrigatórias no compose (`:?`): sem elas a
 # stack recusa subir. Continuam fora do código Python porque quem as consome é
 # o container do gateway, não o sincronizador.
-DO_COMPOSE = {"TUNNEL_TOKEN", "TS_AUTHKEY", "INITIAL_PASSWORD", "JWT_SECRET"}
+DO_COMPOSE = {"ENABLE_SAML", "TUNNEL_TOKEN", "TS_AUTHKEY", "INITIAL_PASSWORD", "JWT_SECRET"}
 
 # Credenciais que este proxy APRESENTA aos gateways irmaos (9Router e
 # OmniRoute) quando usa um deles como provedor. Mesma categoria das chaves de

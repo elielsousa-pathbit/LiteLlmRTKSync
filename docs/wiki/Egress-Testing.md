@@ -25,14 +25,14 @@ Three containers, none of which touch the internet:
 
 | Container | Address | Role |
 | :--- | :--- | :--- |
-| `litellmrtk-proxy-a` | `172.33.0.11` | an HTTP proxy |
-| `litellmrtk-proxy-b` | `172.33.0.12` | a second one, so "went through *a* proxy" and "went through *this* proxy" can be told apart |
-| `litellmrtk-echo` | `172.33.0.20` | the referee: answers with the source address it saw |
+| `litellmrtk-proxy-a` | `10.77.33.11` | an HTTP proxy |
+| `litellmrtk-proxy-b` | `10.77.33.12` | a second one, so "went through *a* proxy" and "went through *this* proxy" can be told apart |
+| `litellmrtk-echo` | `10.77.33.20` | the referee: answers with the source address it saw |
 
 The referee is what makes this verifiable. It returns JSON:
 
 ```json
-{"seen_from": "172.33.0.11", "via": "1.1 squid/6.13", "forwarded_for": "172.33.0.2"}
+{"seen_from": "10.77.33.11", "via": "1.1 squid/6.13", "forwarded_for": "10.77.33.2"}
 ```
 
 `seen_from` is the whole point — no guessing, no third-party IP service, no
@@ -69,15 +69,15 @@ docker network connect litellmrtksync-egress-net litellmrtk-router
 #    It has to go in the file and not into a running container: a container's
 #    environment cannot be changed after it starts.
 environment:
-  - HTTPS_PROXY=http://172.33.0.11:3128
-  - HTTP_PROXY=http://172.33.0.11:3128
+  - HTTPS_PROXY=http://10.77.33.11:3128
+  - HTTP_PROXY=http://10.77.33.11:3128
 
 # 3. recreate it, then watch the proxy log while traffic flows
 docker compose -f docker-compose.example.yml up -d --force-recreate litellmrtk-router
 docker logs -f litellmrtk-proxy-a
 ```
 
-A line like `172.33.0.2 TCP_TUNNEL/200 CONNECT api.provider.com:443` is the
+A line like `10.77.33.2 TCP_TUNNEL/200 CONNECT api.provider.com:443` is the
 gateway's container address going through the proxy — the setting took effect.
 
 Then stop the proxy and send traffic again. **If the request still succeeds, the
@@ -99,7 +99,7 @@ failure mode it found is the reason this page exists at all.
 Against a running 9Router (read on 2026-09-12):
 
 - the pool binding works: `docker logs` on the bench proxy showed
-  `172.33.0.2 TCP_TUNNEL/200 CONNECT google.com:443`, where `172.33.0.2` is the
+  `10.77.33.2 TCP_TUNNEL/200 CONNECT google.com:443`, where `10.77.33.2` is the
   gateway's container;
 - the **pool test path** detects a dead proxy correctly:
   `{"ok":false,"error":"Proxy test timed out"}`.
@@ -167,7 +167,7 @@ instância, um endereço de saída. Conecte `litellmrtk-router` à rede
 dentro do compose (não dá para mudar o ambiente de um container já em pé),
 recrie-o e acompanhe `docker logs -f litellmrtk-proxy-a`.
 
-Uma linha como `172.33.0.2 TCP_TUNNEL/200 CONNECT api.provider.com:443` é o
+Uma linha como `10.77.33.2 TCP_TUNNEL/200 CONNECT api.provider.com:443` é o
 endereço do container do gateway passando pelo proxy — o ajuste pegou.
 
 Depois derrube o proxy e gere tráfego de novo. **Se a requisição ainda for
@@ -188,7 +188,7 @@ o motivo desta página existir.
 Contra um 9Router em execução (lido em 12/09/2026):
 
 - o vínculo do pool funciona: o log do proxy registrou
-  `172.33.0.2 TCP_TUNNEL/200 CONNECT google.com:443`;
+  `10.77.33.2 TCP_TUNNEL/200 CONNECT google.com:443`;
 - o **caminho de teste do pool** detecta um proxy morto corretamente:
   `{"ok":false,"error":"Proxy test timed out"}`.
 
