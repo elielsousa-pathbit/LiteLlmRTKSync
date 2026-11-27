@@ -103,7 +103,7 @@ use `litellmrtk-test-sync`.
 
 ## Local virtual environment
 
-Python 3.14.7 is what CI runs; 3.11 and up are tested.
+Requires [Python 3.10 or later](https://www.python.org/downloads/). CI tests Python 3.11 through 3.14, and the official Docker image uses Python 3.14.
 
 ### 1. Clone
 
